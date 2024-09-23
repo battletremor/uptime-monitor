@@ -1,31 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import { Box, Typography } from '@mui/material';
+import { Line } from 'react-chartjs-2'; // Make sure to install chart.js and react-chartjs-2
 
 const LiveStatus = ({ url }) => {
-  const [responseTimes, setResponseTimes] = useState([]);
+  const [responseData, setResponseData] = useState([]);
 
   useEffect(() => {
-    // Fetch response time data for the selected URL
+    const fetchResponseTimes = async () => {
+      const storedData = JSON.parse(localStorage.getItem('uptimeData')) || {};
+      const urlData = storedData[url] || { responseTimes: [] };
+      setResponseData(urlData.responseTimes);
+    };
+
+    fetchResponseTimes();
   }, [url]);
 
-  const data = {
-    labels: responseTimes.map((_, index) => `Request ${index + 1}`),
+  const chartData = {
+    labels: responseData.map((data, index) => `Check ${index + 1}`),
     datasets: [
       {
         label: 'Response Time (ms)',
-        data: responseTimes,
-        borderColor: 'rgba(75,192,192,1)',
+        data: responseData,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 2,
         fill: false,
       },
     ],
   };
 
   return (
-    <Box>
-      <Typography variant="h5">Live Status for {url}</Typography>
-      <Line data={data} />
-    </Box>
+    <div>
+      <h2>Live Status for {url}</h2>
+      <Line data={chartData} />
+    </div>
   );
 };
 
