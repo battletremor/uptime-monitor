@@ -42,11 +42,14 @@ jobs:
         fi
 
         # Remove untracked files before switching branch
-        git rm -f uptime-data.json || true
+        git rm -f uptime.json || true
 
         # Switch to gh-pages branch or create it if it doesn't exist
         git fetch origin
         git checkout gh-pages || git checkout --orphan gh-pages
+
+        # Pull the latest changes from the remote branch
+        git pull origin gh-pages
 
         # Stage and commit the changes
         git add uptime.json
