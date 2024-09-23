@@ -35,17 +35,24 @@ jobs:
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
-        
-        # Create gh-pages branch if it doesn't exist
+
+        # Ensure the file exists before trying to move it
+        if [ -f "uptime-data.json" ]; then
+          mv uptime-data.json uptime.json
+        fi
+
+        # Remove untracked files before switching branch
+        git rm -f uptime-data.json || true
+
+        # Switch to gh-pages branch or create it if it doesn't exist
         git fetch origin
         git checkout gh-pages || git checkout --orphan gh-pages
 
-        # Remove untracked file before switching branch
-        rm -f uptime-data.json
-    
-        mv uptime-data.json uptime.json
+        # Stage and commit the changes
         git add uptime.json
-        git commit -m "Updated uptime data"
+        git commit -m "Updated uptime data" || echo "No changes to commit"
+
+        # Push the changes to gh-pages branch
         git push origin gh-pages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
