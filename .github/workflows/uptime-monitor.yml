@@ -35,8 +35,11 @@ jobs:
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
-        git checkout gh-pages
+        # Create gh-pages branch if it doesn't exist
+        git fetch origin
+        git checkout gh-pages || git checkout --orphan gh-pages
+    
         mv uptime-data.json uptime.json
         git add uptime.json
         git commit -m "Updated uptime data"
-        git push
+        git push origin gh-pages
