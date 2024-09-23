@@ -1,0 +1,42 @@
+name: Uptime Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # Check every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  uptime-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Uptime Check
+      run: |
+        URLS=(${{ secrets.MONITOR_URLS }})
+        DATA="[]"
+
+        for URL in "${URLS[@]}"
+        do
+          START=$(date +%s%3N)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+          END=$(date +%s%3N)
+          DURATION=$((END - START))
+          
+          # Add result to JSON object
+          DATA=$(echo $DATA | jq --arg url "$URL" --argjson duration "$DURATION" --arg http_code "$HTTP_CODE" '. += [{"url": $url, "responseTime": $duration, "httpCode": $http_code, "timestamp": now | todate}]')
+        done
+
+        echo $DATA > uptime-data.json
+
+    - name: Commit and Push Data
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git checkout gh-pages
+        mv uptime-data.json uptime.json
+        git add uptime.json
+        git commit -m "Updated uptime data"
+        git push
