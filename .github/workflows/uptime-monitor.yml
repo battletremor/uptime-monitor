@@ -2,60 +2,36 @@ name: Uptime Monitor
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # Check every 5 minutes
-  workflow_dispatch:
+    # This triggers the workflow to run every 5 minutes.
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual triggering from the GitHub Actions UI
 
 jobs:
   uptime-check:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Uptime Check
-      run: |
-        URLS=(${{ secrets.MONITOR_URLS }})
-        DATA="[]"
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16' # Ensure Node.js is installed
 
-        for URL in "${URLS[@]}"
-        do
-          START=$(date +%s%3N)
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-          END=$(date +%s%3N)
-          DURATION=$((END - START))
-          
-          # Add result to JSON object
-          DATA=$(echo $DATA | jq --arg url "$URL" --argjson duration "$DURATION" --arg http_code "$HTTP_CODE" '. += [{"url": $url, "responseTime": $duration, "httpCode": $http_code, "timestamp": now | todate}]')
-        done
+      - name: Install dependencies
+        run: npm install
 
-        echo $DATA > uptime-data.json
+      - name: Run uptime monitor script
+        run: |
+          node monitor.js # assuming you have a script called monitor.js
 
-    - name: Commit and Push Data
-      run: |
-        git config user.name "github-actions"
-        git config user.email "actions@github.com"
-
-        # Ensure the file exists before trying to move it
-        if [ -f "uptime-data.json" ]; then
-          mv uptime-data.json uptime.json
-        fi
-
-        # Remove untracked files before switching branch
-        git rm -f uptime.json || true
-
-        # Switch to gh-pages branch or create it if it doesn't exist
-        git fetch origin
-        git checkout gh-pages || git checkout --orphan gh-pages
-
-        # Pull the latest changes from the remote branch
-        git pull origin gh-pages
-
-        # Stage and commit the changes
-        git add uptime.json
-        git commit -m "Updated uptime data" || echo "No changes to commit"
-
-        # Push the changes to gh-pages branch
-        git push origin gh-pages
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push uptime data
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add uptime.json
+          git commit -m "Updated uptime data"
+          git push origin gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
