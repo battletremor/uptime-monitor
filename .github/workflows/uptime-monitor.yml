@@ -1,37 +1,37 @@
-name: Uptime Monitor
+name: Uptime Monitor Update
 
 on:
   schedule:
-    # This triggers the workflow to run every 5 minutes.
-    - cron: '*/5 * * * *'
-  workflow_dispatch: # Allow manual triggering from the GitHub Actions UI
+    - cron: '*/5 * * * *' # Runs every 5 minutes
 
 jobs:
-  uptime-check:
+  update-uptime:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16' # Ensure Node.js is installed
-
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run uptime monitor script
+      - name: Run uptime monitor
+        run: node monitor.js
+
+      - name: Checkout gh-pages branch
         run: |
-          node monitor.js # assuming you have a script called monitor.js
+          git fetch origin
+          git checkout gh-pages || git checkout -b gh-pages
 
-      - name: Commit and push uptime data
+      - name: Push changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add uptime.json
           git commit -m "Updated uptime data"
-          git push origin gh-pages
+          git push origin gh-pages --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
