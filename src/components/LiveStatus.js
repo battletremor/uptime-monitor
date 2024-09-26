@@ -1,36 +1,40 @@
+// src/components/LiveStatus.js
 import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2'; // Make sure to install chart.js and react-chartjs-2
+import { Line } from 'react-chartjs-2';
+import 'chart.js/auto';
 
 const LiveStatus = ({ url }) => {
-  const [responseData, setResponseData] = useState([]);
+  const [responseTimes, setResponseTimes] = useState([]);
 
   useEffect(() => {
-    const fetchResponseTimes = async () => {
-      const storedData = JSON.parse(localStorage.getItem('uptimeData')) || {};
-      const urlData = storedData[url] || { responseTimes: [] };
-      setResponseData(urlData.responseTimes);
-    };
-
-    fetchResponseTimes();
+    // Fetch stored response times for the URL from localStorage
+    const storedData = JSON.parse(localStorage.getItem('uptimeData')) || {};
+    if (storedData[url]) {
+      setResponseTimes(storedData[url].responseTimes);
+    }
   }, [url]);
 
   const chartData = {
-    labels: responseData.map((data, index) => `Check ${index + 1}`),
+    labels: responseTimes.map((_, idx) => `Check ${idx + 1}`),
     datasets: [
       {
-        label: 'Response Time (ms)',
-        data: responseData,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 2,
+        label: `Response Time for ${url}`,
+        data: responseTimes,
         fill: false,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        tension: 0.1,
       },
     ],
   };
 
   return (
     <div>
-      <h2>Live Status for {url}</h2>
-      <Line data={chartData} />
+      <h2>Live Status: {url}</h2>
+      {responseTimes.length > 0 ? (
+        <Line data={chartData} />
+      ) : (
+        <p>No response time data available.</p>
+      )}
     </div>
   );
 };
