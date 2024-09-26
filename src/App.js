@@ -1,25 +1,35 @@
-import React, { useState } from 'react';
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Summary from './components/Summary';
 import LiveStatus from './components/LiveStatus';
 
 const App = () => {
-  const [selectedUrl, setSelectedUrl] = useState('');
-
-  const handleUrlSelect = (url) => {
-    setSelectedUrl(url);
-  };
+  const urls = ['https://google.com', 'https://amazon.com']; // Add more URLs as needed
 
   return (
-    <div>
-      <h1>Uptime Monitor</h1>
-      <Summary />
-      {selectedUrl && <LiveStatus url={selectedUrl} />}
+    <Router>
       <div>
-        {/* Example buttons or links to select URLs, adjust based on your actual data */}
-        <button onClick={() => handleUrlSelect('http://example.com')}>Show Live Status for example.com</button>
-        {/* Add more buttons for other URLs as needed */}
+        <h1>Uptime Monitor</h1>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/">Summary</Link>
+            </li>
+            {urls.map((url, index) => (
+              <li key={index}>
+                <Link to={`/status/${encodeURIComponent(url)}`}>Live Status: {url}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<Summary urls={urls} />} />
+          <Route path="/status/:url" element={<LiveStatus url={decodeURIComponent(window.location.pathname.split('/').pop())} />} />
+        </Routes>
       </div>
-    </div>
+    </Router>
   );
 };
 
