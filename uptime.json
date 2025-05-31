@@ -1,1 +1,16 @@
-
+[
+  {
+    "name": "Google",
+    "url": "https://google.com",
+    "status": "up",
+    "responseTime": 152,
+    "timestamp": "2025-05-31T08:48:51.901Z"
+  },
+  {
+    "name": "Amazon",
+    "url": "https://amazon.com",
+    "status": "up",
+    "responseTime": 340,
+    "timestamp": "2025-05-31T08:48:52.241Z"
+  }
+]
